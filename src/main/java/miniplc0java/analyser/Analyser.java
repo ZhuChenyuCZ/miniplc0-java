@@ -264,16 +264,32 @@ public final class Analyser {
      * @throws CompileError
      */
     private void analyseStatementSequence() throws CompileError {
-
-        throw new Error("Not implemented");
+        while (check(TokenType.Ident)||check(TokenType.Print)||check(TokenType.Semicolon)){
+            analyseStatement();
+        }
+        //throw new Error("Not implemented");
     }
 
     /**
      * <语句> ::= <赋值语句>|<输出语句>|<空语句>
+     * <空语句> ::= ';'
      * @throws CompileError
      */
     private void analyseStatement() throws CompileError {
-        throw new Error("Not implemented");
+        if (check(TokenType.Ident)){
+            //赋值语句
+            analyseAssignmentStatement();
+        }
+        else if (check(TokenType.Print)) {
+            //输出语句
+            analyseOutputStatement();
+        }
+        else if (check(TokenType.Semicolon)){
+            //空语句 ;
+            expect(TokenType.Semicolon);
+        }
+        else throw new Error("Not implemented");
+        //throw new Error("Not implemented");
     }
 
     /**
@@ -284,14 +300,26 @@ public final class Analyser {
         throw new Error("Not implemented");
     }
 
+    /**
+     * <表达式> ::= <项>{<加法型运算符><项>}
+     * @throws CompileError
+     */
     private void analyseExpression() throws CompileError {
         throw new Error("Not implemented");
     }
 
+    /**
+     * <赋值语句> ::= <标识符>'='<表达式>';'
+     * @throws CompileError
+     */
     private void analyseAssignmentStatement() throws CompileError {
         throw new Error("Not implemented");
     }
 
+    /**
+     * <输出语句> ::= 'print' '(' <表达式> ')' ';'
+     * @throws CompileError
+     */
     private void analyseOutputStatement() throws CompileError {
         expect(TokenType.Print);
         expect(TokenType.LParen);
