@@ -202,10 +202,22 @@ public final class Analyser {
         expect(TokenType.EOF);
     }
 
+    /**
+     * <主过程> ::= <常量声明><变量声明><语句序列>
+     * @throws CompileError
+     */
     private void analyseMain() throws CompileError {
-        throw new Error("Not implemented");
+        analyseConstantDeclaration();
+        analyseVariableDeclaration();
+        analyseStatementSequence();
+        //throw new Error("Not implemented");
     }
 
+    /**
+     * <常量声明> ::= {<常量声明语句>}
+     * <常量声明语句> ::= 'const'<标识符>'='<常表达式>';'
+     * @throws CompileError
+     */
     private void analyseConstantDeclaration() throws CompileError {
         // 示例函数，示例如何解析常量声明
         // 如果下一个 token 是 const 就继续
@@ -224,18 +236,50 @@ public final class Analyser {
         }
     }
 
+    /**
+     * <变量声明> ::= {<变量声明语句>}
+     * <变量声明语句> ::= 'var'<标识符>['='<表达式>]';'
+     * @throws CompileError
+     */
     private void analyseVariableDeclaration() throws CompileError {
-        throw new Error("Not implemented");
+        // 如果下一个 token 是 var 就继续
+        while (nextIf(TokenType.Var) != null){
+            //变量名
+            var nameToken = expect(TokenType.Ident);
+
+            //等于号
+            if (nextIf(TokenType.Equal) != null){
+                //表达式
+                analyseExpression();
+            }
+
+            // 分号
+            expect(TokenType.Semicolon);
+        }
+        //throw new Error("Not implemented");
     }
 
+    /**
+     * <语句序列> ::= {<语句>}
+     * @throws CompileError
+     */
     private void analyseStatementSequence() throws CompileError {
+
         throw new Error("Not implemented");
     }
 
+    /**
+     * <语句> ::= <赋值语句>|<输出语句>|<空语句>
+     * @throws CompileError
+     */
     private void analyseStatement() throws CompileError {
         throw new Error("Not implemented");
     }
 
+    /**
+     * <常表达式> ::= [<符号>]<无符号整数>
+     * @throws CompileError
+     */
     private void analyseConstantExpression() throws CompileError {
         throw new Error("Not implemented");
     }
