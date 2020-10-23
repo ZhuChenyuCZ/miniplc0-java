@@ -297,7 +297,14 @@ public final class Analyser {
      * @throws CompileError
      */
     private void analyseConstantExpression() throws CompileError {
-        throw new Error("Not implemented");
+        if (check(TokenType.Plus)||check(TokenType.Minus)) {
+            if (check(TokenType.Plus)) 
+                expect(TokenType.Plus);
+            else
+                expect(TokenType.Minus);
+        }
+        expect(TokenType.Uint);
+        //throw new Error("Not implemented");
     }
 
     /**
@@ -305,7 +312,11 @@ public final class Analyser {
      * @throws CompileError
      */
     private void analyseExpression() throws CompileError {
-        throw new Error("Not implemented");
+        analyseItem();
+        while (nextIf(TokenType.Plus) != null||nextIf(TokenType.Minus) != null) {
+            analyseItem();
+        }
+        //throw new Error("Not implemented");
     }
 
     /**
@@ -313,7 +324,11 @@ public final class Analyser {
      * @throws CompileError
      */
     private void analyseAssignmentStatement() throws CompileError {
-        throw new Error("Not implemented");
+        expect(TokenType.Ident);
+        expect(TokenType.Equal);
+        analyseExpression();
+        expect(TokenType.Semicolon);
+        //throw new Error("Not implemented");
     }
 
     /**
@@ -329,10 +344,22 @@ public final class Analyser {
         instructions.add(new Instruction(Operation.WRT));
     }
 
+    /**
+     * <项> ::= <因子>{<乘法型运算符><因子>}
+     * @throws CompileError
+     */
     private void analyseItem() throws CompileError {
-        throw new Error("Not implemented");
+        analyseFactor();
+        while (nextIf(TokenType.Mult) != null||nextIf(TokenType.Div) != null) {
+            analyseFactor();
+        }
+        //throw new Error("Not implemented");
     }
 
+    /**
+     * <因子> ::= [<符号>]( <标识符> | <无符号整数> | '('<表达式>')' )
+     * @throws CompileError
+     */
     private void analyseFactor() throws CompileError {
         boolean negate;
         if (nextIf(TokenType.Minus) != null) {
