@@ -372,15 +372,30 @@ public final class Analyser {
         }
 
         if (check(TokenType.Ident)) {
-            // 调用相应的处理函数
-            int offset=getNextVariableOffset();
+            // 是标识符
+
+            // 加载标识符的值
             Token nowToken=expect(TokenType.Ident);
-            instructions.add(new Instruction(Operation.LOD));
+            String name = nowToken.getValueString();///* 快填 */ null;
+            var symbol = symbolTable.get(name);
+            if (symbol == null) {
+                // 没有这个标识符
+                throw new AnalyzeError(ErrorCode.NotDeclared, nowToken.getStartPos());// /* 当前位置 */ null);
+            } else if (!symbol.isInitialized) {
+                // 标识符没初始化
+                throw new AnalyzeError(ErrorCode.NotInitialized, nowToken.getStartPos());// /* 当前位置 */ null);
+            }
+            var offset = getOffset(name, null);
+            instructions.add(new Instruction(Operation.LOD, offset));
         } else if (check(TokenType.Uint)) {
-            // 调用相应的处理函数
+            // 是整数
+            // 加载整数值
             Token nowToken=expect(TokenType.Uint);
-            instructions.add(new Instruction(Operation.LIT,Integer.parseInt(nowToken.getValueString())));
+            int value = 0;
+            value=Integer.parseInt(nowToken.getValueString());
+            instructions.add(new Instruction(Operation.LIT, value));
         } else if (check(TokenType.LParen)) {
+            // 是表达式
             // 调用相应的处理函数
             expect(TokenType.LParen);
             analyseExpression();
