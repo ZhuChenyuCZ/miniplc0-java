@@ -154,6 +154,22 @@ public final class Analyser {
     }
 
     /**
+     * 设置符号为已赋值
+     * 
+     * @param name   符号名称
+     * @param curPos 当前位置（报错用）
+     * @throws AnalyzeError 如果未定义则抛异常
+     */
+    private void initializeSymbol(String name, Pos curPos) throws AnalyzeError {
+        var entry = this.symbolTable.get(name);
+        if (entry == null) {
+            throw new AnalyzeError(ErrorCode.NotDeclared, curPos);
+        } else {
+            entry.setInitialized(true);
+        }
+    }
+
+    /**
      * 获取变量在栈上的偏移
      * 
      * @param name   符号名
@@ -225,14 +241,23 @@ public final class Analyser {
             // 变量名
             var nameToken = expect(TokenType.Ident);
 
+            // 加入符号表
+            String name = (String) nameToken.getValue();
+            addSymbol(name, true, true, nameToken.getStartPos());
+
             // 等于号
             expect(TokenType.Equal);
 
             // 常表达式
-            analyseConstantExpression();
+            var value = analyseConstantExpression();
 
             // 分号
             expect(TokenType.Semicolon);
+
+            // 这里把常量值直接放进栈里，位置和符号表记录的一样。
+            // 更高级的程序还可以把常量的值记录下来，遇到相应的变量直接替换成这个常数值，
+            // 我们这里就先不这么干了。
+            instructions.add(new Instruction(Operation.LIT, value));
         }
     }
 
@@ -247,14 +272,27 @@ public final class Analyser {
             //变量名
             var nameToken = expect(TokenType.Ident);
 
+            // 变量初始化了吗
+            boolean initialized = false;
+
             //等于号
             if (nextIf(TokenType.Equal) != null){
+                initialized = true;
                 //表达式
                 analyseExpression();
             }
 
             // 分号
             expect(TokenType.Semicolon);
+
+            // 加入符号表，请填写名字和当前位置（报错用）
+            String name = (String) nameToken.getValue(); ///* 名字 */ null;
+            addSymbol(name, false, false, nameToken.getStartPos()); ///* 当前位置 */ null);
+
+            // 如果没有初始化的话在栈里推入一个初始值
+            if (!initialized) {
+                instructions.add(new Instruction(Operation.LIT, 0));
+            }
         }
         //throw new Error("Not implemented");
     }
@@ -296,14 +334,23 @@ public final class Analyser {
      * <常表达式> ::= [<符号>]<无符号整数>
      * @throws CompileError
      */
-    private void analyseConstantExpression() throws CompileError {
-        if (check(TokenType.Plus)||check(TokenType.Minus)) {
-            if (check(TokenType.Plus)) 
-                expect(TokenType.Plus);
-            else
-                expect(TokenType.Minus);
+    private int analyseConstantExpression() throws CompileError {
+        boolean negative = false;
+        if (nextIf(TokenType.Plus) != null) {
+            negative = false;
+        } else if (nextIf(TokenType.Minus) != null) {
+            negative = true;
         }
-        expect(TokenType.Uint);
+
+        var token = expect(TokenType.Uint);
+
+        int value = (int) token.getValue();
+        if (negative) {
+            value = -value;
+        }
+
+        return value;
+
         //throw new Error("Not implemented");
     }
 
@@ -313,8 +360,29 @@ public final class Analyser {
      */
     private void analyseExpression() throws CompileError {
         analyseItem();
-        while (nextIf(TokenType.Plus) != null||nextIf(TokenType.Minus) != null) {
+        /*while (nextIf(TokenType.Plus) != null||nextIf(TokenType.Minus) != null) {
             analyseItem();
+        }*/
+
+        while (true) {
+            // 预读可能是运算符的 token
+            var op = peek();
+            if (op.getTokenType() != TokenType.Plus && op.getTokenType() != TokenType.Minus) {
+                break;
+            }
+
+            // 运算符
+            next();
+
+            // 项
+            analyseItem();
+
+            // 生成代码
+            if (op.getTokenType() == TokenType.Plus) {
+                instructions.add(new Instruction(Operation.ADD));
+            } else if (op.getTokenType() == TokenType.Minus) {
+                instructions.add(new Instruction(Operation.SUB));
+            }
         }
         //throw new Error("Not implemented");
     }
@@ -324,10 +392,27 @@ public final class Analyser {
      * @throws CompileError
      */
     private void analyseAssignmentStatement() throws CompileError {
-        expect(TokenType.Ident);
+        var nameToken = expect(TokenType.Ident);
+        String name = (String) nameToken.getValue();
+        var symbol = symbolTable.get(name);
+        if (symbol == null) {
+            // 没有这个标识符
+            throw new AnalyzeError(ErrorCode.NotDeclared, nameToken.getStartPos());
+        } else if (symbol.isConstant) {
+            // 标识符是常量
+            throw new AnalyzeError(ErrorCode.AssignToConstant, nameToken.getStartPos());
+        }
+
         expect(TokenType.Equal);
         analyseExpression();
         expect(TokenType.Semicolon);
+
+        // 设置符号已初始化
+        initializeSymbol(name, nameToken.getStartPos());
+
+        // 把结果保存
+        var offset = getOffset(name, nameToken.getStartPos());
+        instructions.add(new Instruction(Operation.STO, offset));
         //throw new Error("Not implemented");
     }
 
@@ -350,8 +435,25 @@ public final class Analyser {
      */
     private void analyseItem() throws CompileError {
         analyseFactor();
-        while (nextIf(TokenType.Mult) != null||nextIf(TokenType.Div) != null) {
+        while (true) {
+            // 预读可能是运算符的 token
+            Token op = peek();
+            if (op.getTokenType() != TokenType.Plus && op.getTokenType() != TokenType.Minus) {
+                break;
+            }
+
+            // 运算符
+            next();
+
+            // 因子
             analyseFactor();
+
+            // 生成代码
+            if (op.getTokenType() == TokenType.Plus) {
+                instructions.add(new Instruction(Operation.ADD));
+            } else if (op.getTokenType() == TokenType.Minus) {
+                instructions.add(new Instruction(Operation.SUB));
+            }
         }
         //throw new Error("Not implemented");
     }
@@ -376,7 +478,7 @@ public final class Analyser {
 
             // 加载标识符的值
             Token nowToken=expect(TokenType.Ident);
-            String name = nowToken.getValueString();///* 快填 */ null;
+            String name = (String) nowToken.getValue();///* 快填 */ null;
             var symbol = symbolTable.get(name);
             if (symbol == null) {
                 // 没有这个标识符
