@@ -373,10 +373,15 @@ public final class Analyser {
 
         if (check(TokenType.Ident)) {
             // 调用相应的处理函数
+            Token nowToken=expect(TokenType.Ident);
+            instructions.add(new Instruction(Operation.LOD));
         } else if (check(TokenType.Uint)) {
             // 调用相应的处理函数
+            Token nowToken=expect(TokenType.Uint);
+            instructions.add(new Instruction(Operation.LIT,Integer.parseInt(nowToken.getValueString())));
         } else if (check(TokenType.LParen)) {
             // 调用相应的处理函数
+            expect(TokenType.LParen);
         } else {
             // 都不是，摸了
             throw new ExpectedTokenError(List.of(TokenType.Ident, TokenType.Uint, TokenType.LParen), next());
