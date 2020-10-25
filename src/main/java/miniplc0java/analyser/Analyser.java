@@ -258,6 +258,7 @@ public final class Analyser {
             // 更高级的程序还可以把常量的值记录下来，遇到相应的变量直接替换成这个常数值，
             // 我们这里就先不这么干了。
             instructions.add(new Instruction(Operation.LIT, value));
+
         }
     }
 
@@ -294,7 +295,7 @@ public final class Analyser {
             addSymbol(name, false, false, nameToken.getStartPos());
 
             //未原本未赋值的变量赋值
-            instructions.add(new Instruction(Operation.STO, getOffset(name, nameToken.getStartPos())));
+            instructions.add(new Instruction(Operation.STO, getOffset(nameToken.getValueString(), nameToken.getStartPos())));
         }
         //throw new Error("Not implemented");
     }
@@ -350,6 +351,7 @@ public final class Analyser {
         if (negative) {
             value = -value;
         }
+
 
         return value;
 
