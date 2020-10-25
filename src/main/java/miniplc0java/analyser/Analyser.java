@@ -438,7 +438,7 @@ public final class Analyser {
         while (true) {
             // 预读可能是运算符的 token
             Token op = peek();
-            if (op.getTokenType() != TokenType.Plus && op.getTokenType() != TokenType.Minus) {
+            if (op.getTokenType() != TokenType.Mult && op.getTokenType() != TokenType.Div) {
                 break;
             }
 
@@ -449,10 +449,10 @@ public final class Analyser {
             analyseFactor();
 
             // 生成代码
-            if (op.getTokenType() == TokenType.Plus) {
-                instructions.add(new Instruction(Operation.ADD));
-            } else if (op.getTokenType() == TokenType.Minus) {
-                instructions.add(new Instruction(Operation.SUB));
+            if (op.getTokenType() == TokenType.Mult) {
+                instructions.add(new Instruction(Operation.MUL));
+            } else if (op.getTokenType() == TokenType.Div) {
+                instructions.add(new Instruction(Operation.DIV));
             }
         }
         //throw new Error("Not implemented");
