@@ -63,25 +63,25 @@ public class Tokenizer {
         // 请填空：
         // 直到查看下一个字符不是数字或字母为止:
         // -- 前进一个字符，并存储这个字符
-        String sTemp="";
+        String str="";
         Pos startPos=it.currentPos();
         while (Character.isDigit(it.peekChar())||Character.isAlphabetic(it.peekChar()))
         {
-            sTemp=sTemp+it.nextChar();
+            str=str+it.nextChar();
         }
-        switch (sTemp){
+        switch (str){
             case "begin":
-                return new Token(TokenType.Begin, "begin", startPos, it.currentPos());
+                return new Token(TokenType.Begin, str, startPos, it.currentPos());
             case "end":
-                return new Token(TokenType.End, "end", startPos, it.currentPos());
+                return new Token(TokenType.End, str, startPos, it.currentPos());
             case "var":
-                return new Token(TokenType.Var, "var", startPos, it.currentPos());
+                return new Token(TokenType.Var, str, startPos, it.currentPos());
             case "const":
-                return new Token(TokenType.Const, "const", startPos, it.currentPos());
+                return new Token(TokenType.Const, str, startPos, it.currentPos());
             case "print":
-                return new Token(TokenType.Print, "print", startPos, it.currentPos());
+                return new Token(TokenType.Print, str, startPos, it.currentPos());
             default:
-                return new Token(TokenType.Ident, sTemp, startPos, it.currentPos());
+                return new Token(TokenType.Ident, str, startPos, it.currentPos());
         }
         //
         // 尝试将存储的字符串解释为关键字
