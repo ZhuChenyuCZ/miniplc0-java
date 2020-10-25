@@ -487,7 +487,7 @@ public final class Analyser {
                 // 标识符没初始化
                 throw new AnalyzeError(ErrorCode.NotInitialized, nowToken.getStartPos());// /* 当前位置 */ null);
             }
-            var offset = getOffset(name, null);
+            var offset = getOffset(name, nowToken.getStartPos());
             instructions.add(new Instruction(Operation.LOD, offset));
         } else if (check(TokenType.Uint)) {
             // 是整数
