@@ -269,6 +269,9 @@ public final class Analyser {
     private void analyseVariableDeclaration() throws CompileError {
         // 如果下一个 token 是 var 就继续
         while (nextIf(TokenType.Var) != null){
+            //创建未赋初值变量位置
+            //var A=1; 分成两条语句: var A; A=1;
+            instructions.add(new Instruction(Operation.LIT,0));
             //变量名
             var nameToken = expect(TokenType.Ident);
 
@@ -280,19 +283,18 @@ public final class Analyser {
                 initialized = true;
                 //表达式
                 analyseExpression();
+                declareSymbol(nameToken.getValueString(), nameToken.getStartPos());
             }
 
             // 分号
             expect(TokenType.Semicolon);
 
             // 加入符号表，请填写名字和当前位置（报错用）
-            String name = (String) nameToken.getValue(); ///* 名字 */ null;
-            addSymbol(name, false, false, nameToken.getStartPos()); ///* 当前位置 */ null);
+            String name = (String) nameToken.getValue(); 
+            addSymbol(name, false, false, nameToken.getStartPos());
 
-            // 如果没有初始化的话在栈里推入一个初始值
-            if (!initialized) {
-                instructions.add(new Instruction(Operation.LIT, 0));
-            }
+            //未原本未赋值的变量赋值
+            instructions.add(new Instruction(Operation.STO, getOffset(name, nameToken.getStartPos())));
         }
         //throw new Error("Not implemented");
     }
