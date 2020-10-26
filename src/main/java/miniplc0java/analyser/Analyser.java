@@ -262,7 +262,7 @@ public final class Analyser {
         }
         */
 
-        while (nextIf(TokenType.Const) != null) {
+        /*while (nextIf(TokenType.Const) != null) {
             //先设置一个未初始化的常量
             instructions.add(new Instruction(Operation.LIT,0));
             // 变量名
@@ -285,6 +285,24 @@ public final class Analyser {
             // 更高级的程序还可以把常量的值记录下来，遇到相应的变量直接替换成这个常数值，
             // 我们这里就先不这么干了。
             instructions.add(new Instruction(Operation.STO, getOffset(name, nameToken.getStartPos())));
+        }*/
+
+        while (nextIf(TokenType.Const) != null) {
+            // 变量名
+            instructions.add(new Instruction(Operation.LIT,0));
+            var nameToken = expect(TokenType.Ident);
+            //加入符号表
+            addSymbol(nameToken.getValueString(),false,true,nameToken.getEndPos());
+            // 等于号
+            expect(TokenType.Equal);
+            // 常表达式
+            analyseConstantExpression();
+            //声明已赋值
+            declareSymbol(nameToken.getValueString(),nameToken.getEndPos());
+            // 分号
+            expect(TokenType.Semicolon);
+
+            instructions.add(new Instruction(Operation.STO,getOffset(nameToken.getValueString(),nameToken.getEndPos())));
         }
     }
 
@@ -363,6 +381,7 @@ public final class Analyser {
      * <常表达式> ::= [<符号>]<无符号整数>
      * @throws CompileError
      */
+    /*
     private int analyseConstantExpression() throws CompileError {
         boolean negative = false;
         if (nextIf(TokenType.Plus) != null) {
@@ -383,6 +402,28 @@ public final class Analyser {
 
 
         return value;
+
+        //throw new Error("Not implemented");
+    }
+    */
+
+    //<常表达式> ::= [<符号>]<无符号整数>
+    private void analyseConstantExpression() throws CompileError {
+        //符号
+        boolean negate;
+        if (nextIf(TokenType.Minus) != null) {
+            negate = true;
+            // 计算结果需要被 0 减
+            instructions.add(new Instruction(Operation.LIT, 0));
+        } else {
+            nextIf(TokenType.Plus);
+            negate = false;
+        }
+        var uint = expect(TokenType.Uint);
+        instructions.add(new Instruction(Operation.LIT, (Integer) uint.getValue()));
+        if (negate) {
+            instructions.add(new Instruction(Operation.SUB));
+        }
 
         //throw new Error("Not implemented");
     }
