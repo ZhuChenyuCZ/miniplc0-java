@@ -237,7 +237,6 @@ public final class Analyser {
     private void analyseConstantDeclaration() throws CompileError {
         // 示例函数，示例如何解析常量声明
         // 如果下一个 token 是 const 就继续
-        /* 旧版本
         while (nextIf(TokenType.Const) != null) {
             // 变量名
             var nameToken = expect(TokenType.Ident);
@@ -259,32 +258,7 @@ public final class Analyser {
             // 更高级的程序还可以把常量的值记录下来，遇到相应的变量直接替换成这个常数值，
             // 我们这里就先不这么干了。
             instructions.add(new Instruction(Operation.LIT, value));
-        }
-        */
 
-        while (nextIf(TokenType.Const) != null) {
-            //先设置一个未初始化的常量
-            instructions.add(new Instruction(Operation.LIT,0));
-            // 变量名
-            var nameToken = expect(TokenType.Ident);
-
-            // 加入符号表
-            String name = (String) nameToken.getValue();
-            addSymbol(name, true, true, nameToken.getStartPos());
-
-            // 等于号
-            expect(TokenType.Equal);
-
-            // 常表达式
-            var value = analyseConstantExpression();
-
-            // 分号
-            expect(TokenType.Semicolon);
-
-            // 这里把常量值直接放进栈里，位置和符号表记录的一样。
-            // 更高级的程序还可以把常量的值记录下来，遇到相应的变量直接替换成这个常数值，
-            // 我们这里就先不这么干了。
-            instructions.add(new Instruction(Operation.STO, getOffset(name, nameToken.getStartPos())));
         }
     }
 
@@ -367,7 +341,6 @@ public final class Analyser {
         boolean negative = false;
         if (nextIf(TokenType.Plus) != null) {
             negative = false;
-            instructions.add(new Instruction(Operation.LIT,0);
         } else if (nextIf(TokenType.Minus) != null) {
             negative = true;
         }
@@ -375,10 +348,8 @@ public final class Analyser {
         var token = expect(TokenType.Uint);
 
         int value = (int) token.getValue();
-        instructions.add(new Instruction(Operation.LIT, value));
         if (negative) {
             value = -value;
-            instructions.add(new Instruction(Operation.SUB));
         }
 
 
