@@ -276,23 +276,23 @@ public final class Analyser {
             //变量名
             var nameToken = expect(TokenType.Ident);
 
+            // 加入符号表，请填写名字和当前位置（报错用）
+            String name = (String) nameToken.getValue(); 
+            addSymbol(name, false, false, nameToken.getStartPos());
+
             // 变量初始化了吗
             boolean initialized = false;
 
             //等于号
             if (nextIf(TokenType.Equal) != null){
                 initialized = true;
+                declareSymbol(nameToken.getValueString(), nameToken.getStartPos());
                 //表达式
                 analyseExpression();
-                declareSymbol(nameToken.getValueString(), nameToken.getStartPos());
             }
 
             // 分号
             expect(TokenType.Semicolon);
-
-            // 加入符号表，请填写名字和当前位置（报错用）
-            String name = (String) nameToken.getValue(); 
-            addSymbol(name, false, false, nameToken.getStartPos());
 
             //未原本未赋值的变量赋值
             instructions.add(new Instruction(Operation.STO, getOffset(nameToken.getValueString(), nameToken.getStartPos())));
@@ -486,10 +486,10 @@ public final class Analyser {
             var symbol = symbolTable.get(name);
             if (symbol == null) {
                 // 没有这个标识符
-                throw new AnalyzeError(ErrorCode.NotDeclared, nowToken.getStartPos());// /* 当前位置 */ null);
+                throw new AnalyzeError(ErrorCode.NotDeclared, nowToken.getStartPos());
             } else if (!symbol.isInitialized) {
                 // 标识符没初始化
-                throw new AnalyzeError(ErrorCode.NotInitialized, nowToken.getStartPos());// /* 当前位置 */ null);
+                throw new AnalyzeError(ErrorCode.NotInitialized, nowToken.getStartPos());
             }
             var offset = getOffset(name, nowToken.getStartPos());
             instructions.add(new Instruction(Operation.LOD, offset));
