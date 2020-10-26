@@ -367,7 +367,7 @@ public final class Analyser {
         boolean negative = false;
         if (nextIf(TokenType.Plus) != null) {
             negative = false;
-            instructions.add(new Instruction(Operation.LIT,0);
+            instructions.add(new Instruction(Operation.LIT,0));
         } else if (nextIf(TokenType.Minus) != null) {
             negative = true;
         }
